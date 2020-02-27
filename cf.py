@@ -17,6 +17,8 @@ with open(expanduser("~/.openclashconfig"), 'r') as file:
 baseUrl = config["base_url"]
 authHeaders = config["headers"]
 DELAY_TEST_URL= config["test_url"]
+SHOW_ERROR = config.get("show_error", False)
+TIMEOUT = config.get("show_error", 3000)
 
 def Main(args):
     proxies = getAllProxies({})
@@ -49,15 +51,13 @@ async def startRefreshingJob(proxiesMap):
 
         if proxy["type"] not in ["Vmess", "Shadowsocks"]:
             return
-        else:
-            print(u"fresh proxy[{}]".format(name))
 
-        await refreshProxyDelay(name, proxy, DELAY_TEST_URL ,5000)
+        await refreshProxyDelay(worker_name, name, proxy, DELAY_TEST_URL ,TIMEOUT)
 
     await async_tasks.multi_worker(proxies, handler, worker_count = 20)
 
 
-async def refreshProxyDelay(name, proxy, url,timeout=500):
+async def refreshProxyDelay(job, name, proxy, url,timeout=500):
     delay_url = "{}/proxies/{}/delay?timeout={timeout}&url={testUrl}".format(
         baseUrl,
         quote(proxy["name"]),
@@ -65,9 +65,16 @@ async def refreshProxyDelay(name, proxy, url,timeout=500):
         testUrl = quote(url)
     )
 
-    func = functools.partial(requests.get, delay_url, headers = authHeaders)
+    func = functools.partial(requests.get, delay_url, headers = authHeaders, timeout = timeout)
 
-    await asyncio.get_running_loop().run_in_executor(None, func , None)
+    r = await asyncio.get_running_loop().run_in_executor(None, func , None)
+    if r.status_code == 200:
+        delay = json.loads(r.text)
+        print("Task{}::proxy [{}] delay {}".format(job, proxy["name"], delay["delay"]))
+    elif SHOW_ERROR:
+        print("Task{}::proxy [{}] get delay error".format(job, name))
+
+
 
 if __name__ == "__main__":
    Main(None) 
