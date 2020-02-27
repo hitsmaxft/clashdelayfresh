@@ -43,18 +43,18 @@ async def startRefreshingJob(proxiesMap):
         for x in proxiesMap
     ]
 
-    async def handler(item, work_name):
-        proxy, name = item["info"],item["name"]
+    async def handler(worker_name, item):
+        proxy = item["info"]
+        name = item["name"]
 
         if proxy["type"] not in ["Vmess", "Shadowsocks"]:
-            print(u"{} passed".format(name))
             return
         else:
             print(u"fresh proxy[{}]".format(name))
 
         await refreshProxyDelay(name, proxy, DELAY_TEST_URL ,5000)
 
-    await async_tasks.multi_worker(proxies, handler, worker_count = 3)
+    await async_tasks.multi_worker(proxies, handler, worker_count = 20)
 
 
 async def refreshProxyDelay(name, proxy, url,timeout=500):
@@ -67,7 +67,7 @@ async def refreshProxyDelay(name, proxy, url,timeout=500):
 
     func = functools.partial(requests.get, delay_url, headers = authHeaders)
 
-    return await asyncio.get_running_loop().run_in_executor(None, func , None)
+    await asyncio.get_running_loop().run_in_executor(None, func , None)
 
 if __name__ == "__main__":
    Main(None) 
