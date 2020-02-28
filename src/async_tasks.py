@@ -12,7 +12,7 @@ async def createWorker(queue, name, func):
         item = queue.get_nowait()
         await func(name, item)
 
-    print("worker[{}] existed after {} tasks".format(name, count))
+    #print("worker[{}] existed after {} tasks".format(name, count))
 
 # 协程入口
 async def multi_worker(tasks, func, worker_count = 3):

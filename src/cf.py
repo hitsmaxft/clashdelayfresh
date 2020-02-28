@@ -19,6 +19,7 @@ authHeaders = config["headers"]
 DELAY_TEST_URL= config["test_url"]
 SHOW_ERROR = config.get("show_error", False)
 TIMEOUT = config.get("show_error", 3000)
+WORKER_COUNT = config.get("worker_count", 20)
 
 def Main(args):
     proxies = getAllProxies({})
@@ -68,6 +69,7 @@ async def refreshProxyDelay(job, name, proxy, url,timeout=500):
     func = functools.partial(requests.get, delay_url, headers = authHeaders, timeout = timeout)
 
     r = await asyncio.get_running_loop().run_in_executor(None, func , None)
+
     if r.status_code == 200:
         delay = json.loads(r.text)
         print("Task{}::proxy [{}] delay {}".format(job, proxy["name"], delay["delay"]))
