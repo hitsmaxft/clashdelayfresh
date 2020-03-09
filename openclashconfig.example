@@ -4,4 +4,5 @@ base_url : 'http://#ip#:9090'
 headers :
     "Authorization": "Bearer #your password#"
 test_url : "http://www.gstatic.com/generate_204"
+clash_config_url = "https://xx.yaml"
 # ft=yaml
